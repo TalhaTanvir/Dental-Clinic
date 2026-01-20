@@ -57,8 +57,25 @@ const Dashboard = () => {
           contactAPI.getAll(),
         ]);
 
+        // Parse appointment stats from array format
+        const statusStats = appointmentsRes.data?.statusStats || [];
+        const appointmentStats = {
+          total: 0,
+          pending: 0,
+          confirmed: 0,
+          completed: 0,
+          cancelled: 0,
+        };
+        
+        statusStats.forEach(stat => {
+          if (stat._id && stat.count) {
+            appointmentStats[stat._id] = stat.count;
+            appointmentStats.total += stat.count;
+          }
+        });
+
         setStats({
-          appointments: appointmentsRes.data || { total: 0, pending: 0, confirmed: 0, completed: 0 },
+          appointments: appointmentStats,
           services: servicesRes.count || servicesRes.data?.length || 0,
           team: teamRes.count || teamRes.data?.length || 0,
           testimonials: {
@@ -208,15 +225,15 @@ const Dashboard = () => {
                   <tr key={appointment._id} className="hover:bg-slate-50">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-slate-800">{appointment.patientName}</p>
+                        <p className="font-medium text-slate-800">{appointment.name}</p>
                         <p className="text-sm text-slate-500">{appointment.email}</p>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{appointment.service}</td>
+                    <td className="px-6 py-4 text-slate-600">{appointment.service || '-'}</td>
                     <td className="px-6 py-4 text-slate-600">
-                      {new Date(appointment.date).toLocaleDateString()}
+                      {appointment.preferredDate ? new Date(appointment.preferredDate).toLocaleDateString() : '-'}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">{appointment.time}</td>
+                    <td className="px-6 py-4 text-slate-600">{appointment.preferredTime || '-'}</td>
                     <td className="px-6 py-4">{getStatusBadge(appointment.status)}</td>
                   </tr>
                 ))}

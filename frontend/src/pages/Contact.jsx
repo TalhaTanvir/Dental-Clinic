@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import { useToast } from '../context/ToastContext';
+import { appointmentsAPI } from '../services/api';
 
 const Contact = () => {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,7 +17,6 @@ const Contact = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -23,13 +25,30 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setIsSubmitted(true);
+    try {
+      // Prepare data for API - only send non-empty fields
+      const appointmentData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+      };
+
+      // Add optional fields only if they have values
+      if (formData.service) appointmentData.service = formData.service;
+      if (formData.preferredDate) appointmentData.preferredDate = formData.preferredDate;
+      if (formData.preferredTime) appointmentData.preferredTime = formData.preferredTime;
+      if (formData.isNewPatient) appointmentData.isNewPatient = formData.isNewPatient;
+      if (formData.message) appointmentData.message = formData.message;
+
+      await appointmentsAPI.create(appointmentData);
+      
+      toast.success('Appointment request submitted successfully! We will contact you shortly to confirm.');
+      
+      // Reset form
       setFormData({
         name: '',
         email: '',
@@ -40,9 +59,11 @@ const Contact = () => {
         isNewPatient: '',
         message: '',
       });
-      
-      setTimeout(() => setIsSubmitted(false), 5000);
-    }, 1500);
+    } catch (error) {
+      toast.error(error.message || 'Failed to submit appointment request. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactInfo = [
@@ -141,15 +162,6 @@ const Contact = () => {
                 <p className="text-gray-600 mb-8">
                   Fill out the form below and we'll contact you to confirm your appointment.
                 </p>
-
-                {isSubmitted && (
-                  <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-xl flex items-center gap-3">
-                    <svg className="w-6 h-6 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <p>Thank you! We'll contact you shortly to confirm your appointment.</p>
-                  </div>
-                )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Personal Info */}

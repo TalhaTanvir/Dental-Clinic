@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { appointmentsAPI, servicesAPI } from '../services/api';
+import { appointmentsAPI } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { DataTable, Button, Badge, Modal, Input, Select, Textarea, ConfirmDialog } from '../components/ui';
 
@@ -13,7 +13,6 @@ const statusOptions = [
 const Appointments = () => {
   const { success, error: showError } = useToast();
   const [appointments, setAppointments] = useState([]);
-  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [modalOpen, setModalOpen] = useState(false);
@@ -21,19 +20,18 @@ const Appointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    patientName: '',
+    name: '',
     email: '',
     phone: '',
     service: '',
-    date: '',
-    time: '',
+    preferredDate: '',
+    preferredTime: '',
     message: '',
     status: 'pending',
   });
 
   useEffect(() => {
     fetchAppointments();
-    fetchServices();
   }, [filter]);
 
   const fetchAppointments = async () => {
@@ -49,37 +47,28 @@ const Appointments = () => {
     }
   };
 
-  const fetchServices = async () => {
-    try {
-      const response = await servicesAPI.getAll();
-      setServices(response.data || []);
-    } catch (err) {
-      console.error('Failed to load services');
-    }
-  };
-
   const openModal = (appointment = null) => {
     if (appointment) {
       setSelectedAppointment(appointment);
       setFormData({
-        patientName: appointment.patientName,
-        email: appointment.email,
-        phone: appointment.phone,
-        service: appointment.service,
-        date: appointment.date?.split('T')[0] || '',
-        time: appointment.time,
+        name: appointment.name || '',
+        email: appointment.email || '',
+        phone: appointment.phone || '',
+        service: appointment.service || '',
+        preferredDate: appointment.preferredDate?.split('T')[0] || '',
+        preferredTime: appointment.preferredTime || '',
         message: appointment.message || '',
-        status: appointment.status,
+        status: appointment.status || 'pending',
       });
     } else {
       setSelectedAppointment(null);
       setFormData({
-        patientName: '',
+        name: '',
         email: '',
         phone: '',
         service: '',
-        date: '',
-        time: '',
+        preferredDate: '',
+        preferredTime: '',
         message: '',
         status: 'pending',
       });
@@ -134,7 +123,7 @@ const Appointments = () => {
 
   const columns = [
     {
-      key: 'patientName',
+      key: 'name',
       label: 'Patient',
       render: (value, row) => (
         <div>
@@ -146,11 +135,11 @@ const Appointments = () => {
     { key: 'phone', label: 'Phone' },
     { key: 'service', label: 'Service' },
     {
-      key: 'date',
+      key: 'preferredDate',
       label: 'Date',
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => value ? new Date(value).toLocaleDateString() : '-',
     },
-    { key: 'time', label: 'Time' },
+    { key: 'preferredTime', label: 'Time', render: (value) => value || '-' },
     {
       key: 'status',
       label: 'Status',
@@ -241,8 +230,8 @@ const Appointments = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="Patient Name"
-              value={formData.patientName}
-              onChange={(e) => setFormData({ ...formData, patientName: e.target.value })}
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
             <Input
@@ -262,22 +251,34 @@ const Appointments = () => {
               label="Service"
               value={formData.service}
               onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-              options={services.map(s => ({ value: s.title, label: s.title }))}
-              required
+              options={[
+                { value: 'checkup', label: 'General Checkup' },
+                { value: 'cleaning', label: 'Teeth Cleaning' },
+                { value: 'whitening', label: 'Teeth Whitening' },
+                { value: 'cosmetic', label: 'Cosmetic Consultation' },
+                { value: 'implants', label: 'Dental Implants' },
+                { value: 'orthodontics', label: 'Invisalign/Orthodontics' },
+                { value: 'emergency', label: 'Emergency Care' },
+                { value: 'other', label: 'Other' },
+              ]}
             />
             <Input
-              label="Date"
+              label="Preferred Date"
               type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              required
+              value={formData.preferredDate}
+              onChange={(e) => setFormData({ ...formData, preferredDate: e.target.value })}
             />
-            <Input
-              label="Time"
-              type="time"
-              value={formData.time}
-              onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-              required
+            <Select
+              label="Preferred Time"
+              value={formData.preferredTime}
+              onChange={(e) => setFormData({ ...formData, preferredTime: e.target.value })}
+              options={[
+                { value: '', label: 'Select time' },
+                { value: 'morning', label: 'Morning (8am - 12pm)' },
+                { value: 'afternoon', label: 'Afternoon (12pm - 4pm)' },
+                { value: 'evening', label: 'Evening (4pm - 6pm)' },
+                { value: 'flexible', label: 'Flexible' },
+              ]}
             />
           </div>
           <Select
@@ -309,7 +310,7 @@ const Appointments = () => {
         onClose={() => setDeleteDialogOpen(false)}
         onConfirm={handleDelete}
         title="Delete Appointment"
-        message={`Are you sure you want to delete the appointment for ${selectedAppointment?.patientName}?`}
+        message={`Are you sure you want to delete the appointment for ${selectedAppointment?.name}?`}
         loading={submitting}
       />
     </div>

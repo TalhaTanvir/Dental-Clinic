@@ -15,13 +15,11 @@ const Services = () => {
     title: '',
     slug: '',
     description: '',
-    shortDescription: '',
+    details: '',
     icon: '',
     image: '',
-    price: '',
-    duration: '',
-    benefits: '',
-    active: true,
+    features: '',
+    isActive: true,
     order: 0,
   });
 
@@ -45,16 +43,14 @@ const Services = () => {
     if (service) {
       setSelectedService(service);
       setFormData({
-        title: service.title,
-        slug: service.slug,
-        description: service.description,
-        shortDescription: service.shortDescription || '',
+        title: service.title || '',
+        slug: service.slug || '',
+        description: service.description || '',
+        details: service.details || '',
         icon: service.icon || '',
         image: service.image || '',
-        price: service.price || '',
-        duration: service.duration || '',
-        benefits: service.benefits?.join('\n') || '',
-        active: service.active !== false,
+        features: service.features?.join('\n') || '',
+        isActive: service.isActive !== false,
         order: service.order || 0,
       });
     } else {
@@ -63,13 +59,11 @@ const Services = () => {
         title: '',
         slug: '',
         description: '',
-        shortDescription: '',
+        details: '',
         icon: '',
         image: '',
-        price: '',
-        duration: '',
-        benefits: '',
-        active: true,
+        features: '',
+        isActive: true,
         order: services.length,
       });
     }
@@ -82,7 +76,7 @@ const Services = () => {
     
     const data = {
       ...formData,
-      benefits: formData.benefits.split('\n').filter(b => b.trim()),
+      features: formData.features.split('\n').filter(f => f.trim()),
     };
 
     try {
@@ -130,12 +124,16 @@ const Services = () => {
       label: 'Service',
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          {row.image && (
+          {row.image ? (
             <img
               src={row.image}
               alt={value}
               className="w-10 h-10 rounded-lg object-cover"
             />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-teal-100 flex items-center justify-center text-lg">
+              {row.icon || '🦷'}
+            </div>
           )}
           <div>
             <p className="font-medium text-slate-800">{value}</p>
@@ -145,16 +143,19 @@ const Services = () => {
       ),
     },
     {
-      key: 'shortDescription',
+      key: 'description',
       label: 'Description',
       render: (value) => (
         <span className="text-slate-600 line-clamp-1">{value || '-'}</span>
       ),
     },
-    { key: 'price', label: 'Price', render: (value) => value || '-' },
-    { key: 'duration', label: 'Duration', render: (value) => value || '-' },
+    { 
+      key: 'features', 
+      label: 'Features', 
+      render: (value) => value?.length ? `${value.length} features` : '-' 
+    },
     {
-      key: 'active',
+      key: 'isActive',
       label: 'Status',
       render: (value) => (
         <Badge variant={value !== false ? 'success' : 'default'}>
@@ -248,18 +249,6 @@ const Services = () => {
               required
             />
             <Input
-              label="Price"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              placeholder="e.g., $99 - $199"
-            />
-            <Input
-              label="Duration"
-              value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-              placeholder="e.g., 30-60 min"
-            />
-            <Input
               label="Icon (emoji or class)"
               value={formData.icon}
               onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
@@ -271,35 +260,43 @@ const Services = () => {
               onChange={(e) => setFormData({ ...formData, image: e.target.value })}
               placeholder="https://..."
             />
+            <Input
+              label="Order"
+              type="number"
+              value={formData.order}
+              onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+            />
           </div>
-          <Input
-            label="Short Description"
-            value={formData.shortDescription}
-            onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
-          />
           <Textarea
-            label="Full Description"
+            label="Description"
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            rows={4}
+            rows={3}
             required
           />
           <Textarea
-            label="Benefits (one per line)"
-            value={formData.benefits}
-            onChange={(e) => setFormData({ ...formData, benefits: e.target.value })}
+            label="Details"
+            value={formData.details}
+            onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+            rows={4}
+            helper="Additional details about the service"
+          />
+          <Textarea
+            label="Features (one per line)"
+            value={formData.features}
+            onChange={(e) => setFormData({ ...formData, features: e.target.value })}
             rows={3}
-            helper="Enter each benefit on a new line"
+            helper="Enter each feature on a new line"
           />
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
-              id="active"
-              checked={formData.active}
-              onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+              id="isActive"
+              checked={formData.isActive}
+              onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
               className="w-4 h-4 text-teal-500 rounded border-slate-300 focus:ring-teal-500"
             />
-            <label htmlFor="active" className="text-sm text-slate-700">
+            <label htmlFor="isActive" className="text-sm text-slate-700">
               Service is active
             </label>
           </div>

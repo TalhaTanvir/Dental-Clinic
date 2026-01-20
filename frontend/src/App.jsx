@@ -10,9 +10,12 @@ import Testimonials from './pages/Testimonials';
 import FAQ from './pages/FAQ';
 import Contact from './pages/Contact';
 
+// Context imports
+import { ToastProvider } from './context/ToastContext';
+
 // Admin imports
 import { AuthProvider } from './admin/context/AuthContext';
-import { ToastProvider } from './admin/context/ToastContext';
+import { ToastProvider as AdminToastProvider } from './admin/context/ToastContext';
 import AdminLayout from './admin/components/AdminLayout';
 import {
   Login,
@@ -35,21 +38,23 @@ function App() {
         <Route
           path="/*"
           element={
-            <div className="font-sans antialiased">
-              <Header />
-              <main>
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/services" element={<Services />} />
-                  <Route path="/gallery" element={<Gallery />} />
-                  <Route path="/testimonials" element={<Testimonials />} />
-                  <Route path="/faq" element={<FAQ />} />
-                  <Route path="/contact" element={<Contact />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
+            <ToastProvider>
+              <div className="font-sans antialiased">
+                <Header />
+                <main>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route path="/gallery" element={<Gallery />} />
+                    <Route path="/testimonials" element={<Testimonials />} />
+                    <Route path="/faq" element={<FAQ />} />
+                    <Route path="/contact" element={<Contact />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </ToastProvider>
           }
         />
 
@@ -58,7 +63,7 @@ function App() {
           path="/admin/*"
           element={
             <AuthProvider>
-              <ToastProvider>
+              <AdminToastProvider>
                 <Routes>
                   <Route path="/login" element={<Login />} />
                   <Route element={<AdminLayout />}>
@@ -72,7 +77,7 @@ function App() {
                     <Route path="messages" element={<Messages />} />
                   </Route>
                 </Routes>
-              </ToastProvider>
+              </AdminToastProvider>
             </AuthProvider>
           }
         />
